@@ -1,0 +1,46 @@
+name: Load credentials
+description: Loads credentials from a secure vault
+
+inputs:
+  one-password-token:
+    description: 1Password service account token
+    required: true
+  vault-name:
+    description: Name of 1Password vault
+    required: true
+  item-name:
+    description: Name of 1Password item
+    required: false
+    default: Nexus User
+
+outputs:
+  username:
+    description: Username
+    value: ${{ steps.load-username.outputs.SECRET }}
+  password:
+    description: Password
+    value: ${{ steps.load-password.outputs.SECRET }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install 1Password CLI
+      uses: 1password/install-cli-action@v1
+
+    - id: load-username
+      name: Load username
+      uses: 1password/load-secrets-action@v1
+      with:
+        export-env: false
+      env:
+        SECRET: op://${{ inputs.vault-name }}/${{ inputs.item-name }}/username
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ inputs.one-password-token }}
+
+    - id: load-password
+      name: Load password
+      uses: 1password/load-secrets-action@v1
+      with:
+        export-env: false
+      env:
+        SECRET: op://${{ inputs.vault-name }}/${{ inputs.item-name }}/password
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ inputs.one-password-token }}
